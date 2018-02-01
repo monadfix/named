@@ -42,41 +42,40 @@ type family FApplyDecisions (name :: Symbol) (fn :: Type) :: FAD where
   FApplyDecisions name (x -> r) = FAD_Skip (FApplyDecisions name r)
   FApplyDecisions name t = FAD_Fail
 
-type family FApply (name :: Symbol) (decisions :: FAD) (fn :: Type) :: Type where
-  FApply name FAD_Done (x -> r) = r
-  FApply name FAD_Fail t = Void
-  FApply name (FAD_Skip fad) (x -> r) = x -> FApply name fad r
-
-class decisions ~ FApplyDecisions name fn => Apply' name a fn decisions where
-  apply :: fn -> Named a name -> FApply name decisions fn
+class
+  ( decisions ~ FApplyDecisions name fn
+  ) => Apply' decisions name a fn fn' | name fn -> fn'
+  where
+    apply :: fn -> Named a name -> fn'
 
 instance
   ( fn ~ (Named a name -> r),
+    fn' ~ r,
     FApplyDecisions name fn ~ FAD_Done
-  ) => Apply' name a fn FAD_Done
+  ) => Apply' FAD_Done name a fn fn'
   where
     apply = id
 
 instance
-  ( Apply' name a r decisions,
+  ( Apply' decisions name a r r',
     FApplyDecisions name fn ~ FAD_Skip decisions,
-    fn ~ (x -> r)
-  ) => Apply' name a fn (FAD_Skip decisions)
+    fn ~ (x -> r),
+    fn' ~ (x -> r')
+  ) => Apply' (FAD_Skip decisions) name a fn fn'
   where
     apply fn named = \x -> fn x ! named
 
 instance
   ( TypeError (Text "Named parameter '" :<>: Text name :<>:
                Text "' was supplied, but not expected"),
-    FApplyDecisions name fn ~ FAD_Fail
-  ) => Apply' name a fn FAD_Fail
+    FApplyDecisions name fn ~ FAD_Fail,
+    fn' ~ Void
+  ) => Apply' FAD_Fail name a fn fn'
   where
     apply = error "FAD_Fail"
 
 type ApplyC (name :: Symbol) (a :: Type) (fn :: Type) (fn' :: Type) =
-  ( Apply' name a fn (FApplyDecisions name fn),
-    fn' ~ FApply name (FApplyDecisions name fn) fn
-  )
+  Apply' (FApplyDecisions name fn) name a fn fn'
 
 class ApplyC name a fn fn' => Apply name a fn fn' | name fn -> fn'
 instance ApplyC name a fn fn' => Apply name a fn fn'
