@@ -78,8 +78,16 @@ import Data.Kind (Type)
 import GHC.TypeLits (Symbol, TypeError, ErrorMessage(..))
 import GHC.OverloadedLabels (IsLabel(..))
 
--- | Assign a name to a value of type @a@. This is a simple wrapper intended
--- for use with
+{- |
+
+Assign a name to a value of type @a@. This is a simple wrapper intended
+for use with @-XOverloadedLabels@:
+
+@
+#verbose True :: Named Bool "verbose"
+@
+
+-}
 newtype Named a (name :: Symbol) = Named { unnamed :: a }
 
 instance (name ~ name', a ~ a') => IsLabel name (a -> Named a' name') where
