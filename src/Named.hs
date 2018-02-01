@@ -11,7 +11,6 @@ module Named
     (!)
   ) where
 
-import Data.Void (Void)
 import Data.Kind (Type)
 import GHC.TypeLits (Symbol, TypeError, ErrorMessage(..))
 import GHC.OverloadedLabels (IsLabel(..))
@@ -69,10 +68,10 @@ instance
   ( TypeError (Text "Named parameter '" :<>: Text name :<>:
                Text "' was supplied, but not expected"),
     FApplyDecisions name fn ~ FAD_Fail,
-    fn' ~ Void
+    fn ~ fn'
   ) => Apply' FAD_Fail name a fn fn'
   where
-    apply = error "FAD_Fail"
+    apply = const
 
 type ApplyC (name :: Symbol) (a :: Type) (fn :: Type) (fn' :: Type) =
   Apply' (FApplyDecisions name fn) name a fn fn'
