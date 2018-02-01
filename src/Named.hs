@@ -25,6 +25,8 @@ type Flag = Named Bool
 pattern Flag :: Bool -> Flag name
 pattern Flag a = Named a
 
+{-# COMPLETE Flag #-}
+
 (!) :: Apply name a fn fn' => fn -> Named a name -> fn'
 (!) = apply
 
