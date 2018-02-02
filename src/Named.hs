@@ -1,6 +1,7 @@
 {-# LANGUAGE KindSignatures, DataKinds, FlexibleInstances, FlexibleContexts,
              FunctionalDependencies, TypeFamilies, TypeOperators,
-             PatternSynonyms, UndecidableInstances, ConstraintKinds #-}
+             PatternSynonyms, UndecidableInstances, ConstraintKinds,
+             TypeApplications, ScopedTypeVariables #-}
 
 {- |
 
@@ -41,20 +42,55 @@ arguments in arbitrary order.
 With keyword arguments, none of that is a problem:
 
 @
-Text.replace ! #haystack path
-             ! #needle "$HOME"
-             ! #replacement "\/home\/username\/"
+Text.replace '!' #haystack path
+             '!' #needle "$HOME"
+             '!' #replacement "\/home\/username\/"
 @
 
 Functions must declare their parameter names in the type signature:
 
 @
 replace ::
-  Text \`Named\` "needle" ->
-  Text \`Named\` "replacement" ->
-  Text \`Named\` "haystack"
+  Text \``Named`\` "needle" ->
+  Text \``Named`\` "replacement" ->
+  Text \``Named`\` "haystack" ->
+  Text
 replace (Named needle) (Named replacement) (Named haystack) =
   ...
+@
+
+Keyword arguments have seamless interoperability with positional arguments when
+the function takes them last. Consider this function:
+
+@
+foo :: A -> B -> C \`Named\` "x" -> IO ()
+@
+
+There are several ways to invoke it:
+
+@
+(foo a b) ! #x c     -- parentheses for clarity
+(foo a ! #x c) b     -- parentheses required
+(foo ! #x c) a b     -- parentheses required
+@
+
+We can also supply keyword arguments using the 'with' combinator instead of
+the '!' operator:
+
+@
+(with #x c foo) a b  -- parentheses for clarity
+with #x c (foo a b)  -- has the same effect
+@
+
+Both '!' and 'with' work in a similar manner: they traverse the spine of
+the function and supply the first keyword argument with a matching name.
+
+For example:
+
+@
+bar           :: A \`Named\` "x" -> B \`Named\` "y" -> IO ()
+bar ! #y b    :: A \`Named\` "x"                  -> IO ()
+with #y b bar :: A \`Named\` "x"                  -> IO ()
 @
 
 -}
@@ -63,6 +99,9 @@ module Named
     -- * Core interface
     Named(..),
     (!),
+    Name(..),
+    with,
+    named,
 
     -- * Specialized synonyms
     Flag,
@@ -108,7 +147,32 @@ pattern Flag a = Named a
 (!) = apply
 {-# INLINE (!) #-}
 
-infixl 0 !
+infixl 9 !
+
+{- |
+
+A proxy for a name, intended for use with @-XOverloadedLabels@:
+
+@
+#verbose :: Name "verbose"
+@
+
+-}
+data Name (name :: Symbol) = Name
+
+instance name ~ name' => IsLabel name' (Name name) where
+  fromLabel = Name
+  {-# INLINE fromLabel #-}
+
+-- | Annotate a value with a name.
+named :: Name name -> a -> Named a name
+named _ = Named
+{-# INLINE named #-}
+
+-- | Supply a keyword argument to a function.
+with :: Apply name a fn fn' => Name name -> a -> fn -> fn'
+with name a fn = fn ! named name a
+{-# INLINE with #-}
 
 --------------------------------------------------------------------------------
 --  Do not read further to avoid emotional trauma.
@@ -144,7 +208,7 @@ instance
     fn' ~ (x -> r')
   ) => Apply' (FAD_Skip decisions) name a fn fn'
   where
-    apply fn named = \x -> apply (fn x) named
+    apply fn a = \x -> apply (fn x) a
     {-# INLINE apply #-}
 
 instance
