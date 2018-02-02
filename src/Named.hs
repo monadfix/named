@@ -101,7 +101,6 @@ module Named
     (!),
     Name(..),
     with,
-    named,
 
     -- * Specialized synonyms
     Flag,
@@ -109,7 +108,8 @@ module Named
 
     -- * Internal
     Apply,
-    apply
+    apply,
+    named
   ) where
 
 import Prelude (Bool, id, const)
@@ -136,13 +136,19 @@ instance (name ~ name', a ~ a') => IsLabel name (a -> Named a' name') where
 -- | Snake oil to cure boolean blindness.
 type Flag = Named Bool
 
--- | Match on a flag, a version of 'Named' specialized for 'Bool'.
+-- | Match on a flag, a version of 'Named' specialized to 'Bool'.
 pattern Flag :: Bool -> Flag name
 pattern Flag a = Named a
 
 {-# COMPLETE Flag #-}
 
--- | Supply a keyword argument to a function.
+{- | Supply a keyword argument to a function:
+
+@
+function ! #param_name value
+@
+-}
+
 (!) :: Apply name a fn fn' => fn -> Named a name -> fn'
 (!) = apply
 {-# INLINE (!) #-}
@@ -164,15 +170,20 @@ instance name ~ name' => IsLabel name' (Name name) where
   fromLabel = Name
   {-# INLINE fromLabel #-}
 
+{- | Supply a keyword argument to a function:
+
+@
+with #param_name value function
+@
+-}
+with :: Apply name a fn fn' => Name name -> a -> fn -> fn'
+with name a fn = fn ! named name a
+{-# INLINE with #-}
+
 -- | Annotate a value with a name.
 named :: Name name -> a -> Named a name
 named _ = Named
 {-# INLINE named #-}
-
--- | Supply a keyword argument to a function.
-with :: Apply name a fn fn' => Name name -> a -> fn -> fn'
-with name a fn = fn ! named name a
-{-# INLINE with #-}
 
 --------------------------------------------------------------------------------
 --  Do not read further to avoid emotional trauma.
