@@ -19,7 +19,7 @@ Text.replace path "$HOME" "\/home\/username\/"
 @
 
 We want to replace references to the @$HOME@ environment variable with a
-concrete directory. There is but one problem - we have supplied the text
+concrete directory. There is but one problem – we have supplied the text
 arguments in the wrong order.
 
 Compare that to a newtype-based solution:
@@ -32,7 +32,7 @@ Text.replace
 @
 
 Now that the function requires each argument to be wrapped in a newtype, we
-cannot mix them up - the compiler will report an error, and newtype constructors
+cannot mix them up – the compiler will report an error, and newtype constructors
 serve as documentation.
 
 The problem with newtypes is that it is bothersome to create them for each
@@ -63,23 +63,23 @@ Keyword arguments have seamless interoperability with positional arguments when
 the function takes them last. Consider this function:
 
 @
-foo :: A -> B -> C \`Named\` "x" -> IO ()
+foo :: A -> B -> C \``Named`\` "x" -> IO ()
 @
 
 There are several ways to invoke it:
 
 @
-(foo a b) ! #x c     -- parentheses for clarity
-(foo a ! #x c) b     -- parentheses required
-(foo ! #x c) a b     -- parentheses required
+(foo a b) '!' #x c     -- parentheses for clarity
+(foo a '!' #x c) b     -- parentheses required
+(foo '!' #x c) a b     -- parentheses required
 @
 
 We can also supply keyword arguments using the 'with' combinator instead of
 the '!' operator:
 
 @
-(with #x c foo) a b  -- parentheses for clarity
-with #x c (foo a b)  -- has the same effect
+('with' #x c foo) a b  -- parentheses for clarity
+'with' #x c (foo a b)  -- has the same effect
 @
 
 Both '!' and 'with' work in a similar manner: they traverse the spine of
@@ -88,9 +88,9 @@ the function and supply the first keyword argument with a matching name.
 For example:
 
 @
-bar           :: A \`Named\` "x" -> B \`Named\` "y" -> IO ()
-bar ! #y b    :: A \`Named\` "x"                  -> IO ()
-with #y b bar :: A \`Named\` "x"                  -> IO ()
+bar           :: A \``Named`\` "x" -> B \``Named`\` "y" -> IO ()
+bar '!' #y b    :: A \``Named`\` "x"                  -> IO ()
+'with' #y b bar :: A \``Named`\` "x"                  -> IO ()
 @
 
 -}
@@ -189,18 +189,18 @@ named _ = Named
 --  Do not read further to avoid emotional trauma.
 --------------------------------------------------------------------------------
 
-data FAD = FAD_Done | FAD_Skip FAD
+data Decision = Done | Skip Decision
 
-type family FApplyDecisions (name :: Symbol) (fn :: Type) :: FAD where
-  FApplyDecisions name (Named a name -> r) = FAD_Done
-  FApplyDecisions name (x -> r) = FAD_Skip (FApplyDecisions name r)
-  FApplyDecisions name t =
+type family Decide (name :: Symbol) (fn :: Type) :: Decision where
+  Decide name (Named a name -> r) = Done
+  Decide name (x -> r) = Skip (Decide name r)
+  Decide name t =
     TypeError (Text "Named parameter '" :<>: Text name :<>:
                Text "' was supplied, but not expected")
 
 class
-  ( decisions ~ FApplyDecisions name fn
-  ) => Apply' decisions name a fn fn' | name fn -> fn'
+  ( decision ~ Decide name fn
+  ) => Apply' decision name a fn fn' | name fn -> fn'
   where
     -- | Apply a function to a keyword argument.
     apply :: fn -> Named a name -> fn'
@@ -208,18 +208,18 @@ class
 instance
   ( fn ~ (Named a name -> r),
     fn' ~ r,
-    FApplyDecisions name fn ~ FAD_Done
-  ) => Apply' FAD_Done name a fn fn'
+    Decide name fn ~ Done
+  ) => Apply' Done name a fn fn'
   where
     apply = id
     {-# INLINE apply #-}
 
 instance
-  ( Apply' decisions name a r r',
-    FApplyDecisions name fn ~ FAD_Skip decisions,
+  ( Apply' decision name a r r',
+    Decide name fn ~ Skip decision,
     fn ~ (x -> r),
     fn' ~ (x -> r')
-  ) => Apply' (FAD_Skip decisions) name a fn fn'
+  ) => Apply' (Skip decision) name a fn fn'
   where
     apply fn a = \x -> apply (fn x) a
     {-# INLINE apply #-}
@@ -242,4 +242,4 @@ error.
 
 -}
 type Apply (name :: Symbol) (a :: Type) (fn :: Type) (fn' :: Type) =
-  Apply' (FApplyDecisions name fn) name a fn fn'
+  Apply' (Decide name fn) name a fn fn'
