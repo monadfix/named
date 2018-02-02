@@ -112,7 +112,7 @@ module Named
     named
   ) where
 
-import Prelude (Bool, id, const)
+import Prelude (Bool, id)
 import Data.Kind (Type)
 import GHC.TypeLits (Symbol, TypeError, ErrorMessage(..))
 import GHC.OverloadedLabels (IsLabel(..))
@@ -189,12 +189,14 @@ named _ = Named
 --  Do not read further to avoid emotional trauma.
 --------------------------------------------------------------------------------
 
-data FAD = FAD_Fail | FAD_Done | FAD_Skip FAD
+data FAD = FAD_Done | FAD_Skip FAD
 
 type family FApplyDecisions (name :: Symbol) (fn :: Type) :: FAD where
   FApplyDecisions name (Named a name -> r) = FAD_Done
   FApplyDecisions name (x -> r) = FAD_Skip (FApplyDecisions name r)
-  FApplyDecisions name t = FAD_Fail
+  FApplyDecisions name t =
+    TypeError (Text "Named parameter '" :<>: Text name :<>:
+               Text "' was supplied, but not expected")
 
 class
   ( decisions ~ FApplyDecisions name fn
@@ -220,16 +222,6 @@ instance
   ) => Apply' (FAD_Skip decisions) name a fn fn'
   where
     apply fn a = \x -> apply (fn x) a
-    {-# INLINE apply #-}
-
-instance
-  ( TypeError (Text "Named parameter '" :<>: Text name :<>:
-               Text "' was supplied, but not expected"),
-    FApplyDecisions name fn ~ FAD_Fail,
-    fn ~ fn'
-  ) => Apply' FAD_Fail name a fn fn'
-  where
-    apply = const
     {-# INLINE apply #-}
 
 {- |
