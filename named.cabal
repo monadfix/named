@@ -35,6 +35,7 @@ maintainer:          Vladislav Zavialov <vlad.z.4096@gmail.com>
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
+tested-with:         GHC ==8.0.2, GHC ==8.2.2, GHC ==8.4.1
 cabal-version:       >=1.10
 
 library
