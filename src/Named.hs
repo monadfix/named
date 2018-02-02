@@ -1,7 +1,7 @@
 {-# LANGUAGE KindSignatures, DataKinds, FlexibleInstances, FlexibleContexts,
              FunctionalDependencies, TypeFamilies, TypeOperators,
              PatternSynonyms, UndecidableInstances, ConstraintKinds,
-             TypeApplications, ScopedTypeVariables #-}
+             TypeApplications, ScopedTypeVariables, CPP #-}
 
 {- |
 
@@ -130,7 +130,11 @@ for use with @-XOverloadedLabels@:
 newtype Named a (name :: Symbol) = Named { unnamed :: a }
 
 instance (name ~ name', a ~ a') => IsLabel name (a -> Named a' name') where
+#if MIN_VERSION_base(4,10,0)
   fromLabel = Named
+#else
+  fromLabel _ = Named
+#endif
   {-# INLINE fromLabel #-}
 
 -- | Snake oil to cure boolean blindness.
@@ -140,7 +144,9 @@ type Flag = Named Bool
 pattern Flag :: Bool -> Flag name
 pattern Flag a = Named a
 
+#if MIN_VERSION_base(4,10,0)
 {-# COMPLETE Flag #-}
+#endif
 
 {- | Supply a keyword argument to a function:
 
@@ -167,7 +173,11 @@ A proxy for a name, intended for use with @-XOverloadedLabels@:
 data Name (name :: Symbol) = Name
 
 instance name ~ name' => IsLabel name' (Name name) where
+#if MIN_VERSION_base(4,10,0)
   fromLabel = Name
+#else
+  fromLabel _ = Name
+#endif
   {-# INLINE fromLabel #-}
 
 {- | Supply a keyword argument to a function:
