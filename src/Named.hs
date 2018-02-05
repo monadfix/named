@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, DataKinds, FlexibleInstances, FlexibleContexts,
+{-# LANGUAGE TypeInType, DataKinds, FlexibleInstances, FlexibleContexts,
              FunctionalDependencies, TypeFamilies, TypeOperators,
              PatternSynonyms, UndecidableInstances, ConstraintKinds,
              TypeApplications, ScopedTypeVariables, CPP #-}
@@ -101,6 +101,7 @@ module Named
     (!),
     Name(..),
     with,
+    type (%),
 
     -- * Specialized synonyms
     Flag,
@@ -194,6 +195,20 @@ with name a fn = fn ! named name a
 named :: Name name -> a -> Named a name
 named _ = Named
 {-# INLINE named #-}
+
+{- | An infix synonym for `Named` for operator junkies. Provides more concise
+notation and allows specifying parameter name and type in arbitrary
+order:
+
+@
+f :: "param" % Int -> ...
+g :: Int % "param" -> ...
+@
+
+-}
+type family (x :: k1) % (z :: k2) :: Type where
+  a % name = Named a name
+  name % a = Named a name
 
 --------------------------------------------------------------------------------
 --  Do not read further to avoid emotional trauma.
