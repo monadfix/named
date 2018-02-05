@@ -41,11 +41,14 @@ test1_6 =
   test1 "str"! #a True
     & with #b False
 
-test2 :: Named Int "x" -> Int
+test2 :: "x" % Int -> Int
 test2 x = unnamed x * 2
 
+test2' :: Int % "x" -> Int
+test2' (Named x) = x * 2
+
 test2_1 :: Int
-test2_1 = test2 ! #x 5 + test2 ! #x 3
+test2_1 = test2 ! #x 5 + test2' ! #x 3
 
 main :: IO ()
 main = do
