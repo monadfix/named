@@ -38,6 +38,10 @@ extra-source-files:  ChangeLog.md
 tested-with:         GHC ==8.0.2, GHC ==8.2.2, GHC ==8.4.1
 cabal-version:       >=1.10
 
+source-repository head
+  type: git
+  location: git@github.com:int-index/named.git
+
 library
   exposed-modules:     Named
   build-depends:       base >=4.9 && <4.12
