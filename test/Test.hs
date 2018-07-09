@@ -1,4 +1,7 @@
-{-# LANGUAGE OverloadedLabels, DataKinds, TypeOperators #-}
+{-# LANGUAGE OverloadedLabels, DataKinds, TypeOperators, ViewPatterns,
+             PartialTypeSignatures #-}
+
+{-# OPTIONS -fno-warn-partial-type-signatures #-}
 
 module Main where
 
@@ -46,6 +49,15 @@ test2 x = unnamed x * 2
 
 test2_1 :: Int
 test2_1 = test2 ! #x 5 + test2 ! #x 3
+
+test3 (arg #a -> a) (arg #b -> b) = a + b
+
+-- must not typecheck:
+--     Couldn't match type ‘"a"’ with ‘"b"’
+--     arising from the overloaded label ‘#b’
+--
+-- test3' :: _ => _ `Named` "a" -> _ `Named` "b" -> _
+-- test3' (arg #b -> a) (arg #a -> b) = a + b
 
 main :: IO ()
 main = do

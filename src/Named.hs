@@ -101,6 +101,7 @@ module Named
     (!),
     Name(..),
     with,
+    arg,
 
     -- * Specialized synonyms
     Flag,
@@ -194,6 +195,30 @@ with name a fn = fn ! named name a
 named :: Name name -> a -> Named a name
 named _ = Named
 {-# INLINE named #-}
+
+{- |
+
+'arg' unwraps a named parameter with the specified name. One way to use it is to
+to match on arguments with @-XViewPatterns@:
+
+@
+fn (arg \#t -> t) (arg \#f -> f) = ...
+@
+
+This way, the names of parameters can be inferred from the patterns: no type
+signature for @fn@ is required. In case a type signature for @fn@ is
+provided, the parameters must come in the same order:
+
+@
+fn :: Integer ``Named`` "t" -> Integer ``Named`` "f" -> ...
+fn (arg \#t -> t) (arg \#f -> f) = ... -- ok
+fn (arg \#f -> f) (arg \#t -> t) = ... -- does not typecheck
+@
+
+-}
+arg :: Name name -> Named a name -> a
+arg _ = unnamed
+{-# INLINE arg #-}
 
 --------------------------------------------------------------------------------
 --  Do not read further to avoid emotional trauma.
