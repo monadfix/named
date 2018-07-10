@@ -1,5 +1,5 @@
 name:                named
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Named parameters (keyword arguments) for Haskell
 description:
     `named` is a lightweight library for named function parameters (keyword
@@ -21,8 +21,8 @@ description:
     .
     > import Named
     >
-    > createSymLink :: FilePath `Named` "from" -> FilePath `Named` "to" -> IO ()
-    > createSymLink (Named from) (Named to) = ...
+    > createSymLink :: "from" :! FilePath -> "to" :! FilePath -> IO ()
+    > createSymLink (Arg from) (Arg to) = ...
     >
     > main = createSymLink ! #from "/path/to/source"
     >                      ! #to "/target/path"

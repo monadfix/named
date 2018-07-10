@@ -1,58 +1,128 @@
 {-# LANGUAGE KindSignatures, DataKinds, FlexibleInstances, FlexibleContexts,
              FunctionalDependencies, TypeFamilies, TypeOperators,
              PatternSynonyms, UndecidableInstances, ConstraintKinds,
-             TypeApplications, ScopedTypeVariables, CPP #-}
+             TypeApplications, ScopedTypeVariables, CPP,
+             AllowAmbiguousTypes #-}
 
 module Named.Internal where
 
-import Prelude (Bool, id)
+import Prelude (id, Maybe(..))
+import Data.Maybe (fromMaybe)
+import Data.Functor.Identity (Identity(..))
 import Data.Kind (Type)
 import GHC.TypeLits (Symbol, TypeError, ErrorMessage(..))
 import GHC.OverloadedLabels (IsLabel(..))
 
 {- |
 
-Assign a name to a value of type @a@. This is a simple wrapper intended
-for use with @-XOverloadedLabels@:
+Assign a name to a value of type @a@ wrapped in @f@.
 
 @
-#verbose True :: Named Bool "verbose"
+#verbose True :: NamedF Identity Bool "verbose"
 @
 
 -}
-newtype Named a (name :: Symbol) = Named { unnamed :: a }
+newtype NamedF f (a :: Type) (name :: Symbol) =
+  ArgF (f a) -- ^ Match on an F-argument without specifying its name.
+             -- See also: 'argF'.
 
-instance (name ~ name', a ~ a') => IsLabel name (a -> Named a' name') where
+-- | Match on an argument without specifying its name. See also: 'arg'.
+pattern Arg :: a -> name :! a
+pattern Arg a = ArgF (Identity a)
+
 #if MIN_VERSION_base(4,10,0)
-  fromLabel = Named
+{-# COMPLETE Arg #-}
+#endif
+
+-- | Infix notation for the type of a named parameter.
+type name :! a = NamedF Identity a name
+
+-- | Infix notation for the type of an optional named parameter.
+type name :? a = NamedF Maybe a name
+
+class InjValue f where
+  injValue :: a -> f a
+
+instance InjValue Identity where
+  injValue = Identity
+
+instance InjValue Maybe where
+  injValue = Just
+
+instance (name ~ name', a ~ a', InjValue f) => IsLabel name (a -> NamedF f a' name') where
+#if MIN_VERSION_base(4,10,0)
+  fromLabel a = ArgF (injValue a)
 #else
-  fromLabel _ = Named
+  fromLabel _ a = ArgF (injValue a)
 #endif
   {-# INLINE fromLabel #-}
 
--- | Snake oil to cure boolean blindness.
-type Flag = Named Bool
+newtype Param p = Param p
 
--- | Match on a flag, a version of 'Named' specialized to 'Bool'.
-pattern Flag :: Bool -> Flag name
-pattern Flag a = Named a
-
+instance (p ~ NamedF f a name, InjValue f) => IsLabel name (a -> Param p) where
 #if MIN_VERSION_base(4,10,0)
-{-# COMPLETE Flag #-}
+  fromLabel a = Param (fromLabel @name a)
+#else
+  fromLabel pName a = Param (fromLabel pName a)
 #endif
+  {-# INLINE fromLabel #-}
 
-{- | Supply a keyword argument to a function:
+{- | Supply a parameter to a function:
 
 @
-function ! #param_name value
+function '!' \#param_name value
+function '!' \#x 7 '!' #y 42 '!' 'defaults'
 @
 -}
-
-(!) :: Apply name a fn fn' => fn -> Named a name -> fn'
-(!) = apply
+(!) :: forall p fn fn'. WithParam p fn fn' => fn -> Param p -> fn'
+fn ! p = with p fn
 {-# INLINE (!) #-}
 
 infixl 9 !
+
+{- |
+Supply a parameter @p@ to a function @fn@, resulting in @fn'@.
+
+For example:
+
+@
+WithParam ("x" :! Char)
+  ("b" :! Bool -> "x" :! Char -> r)
+  ("b" :! Bool -> r)
+@
+
+In case the parameter cannot be supplied, this constraint will become a type
+error.
+
+-}
+class WithParam p fn fn' | p fn -> fn' where
+  {- | Supply a parameter to a function:
+
+  @
+  'with' (\#param_name value) function
+  'with' 'defaults' function
+  @
+  -}
+  with :: Param p -> fn -> fn'
+
+instance WithParam' (Decide p fn) p fn fn' => WithParam p fn fn' where
+  with (Param p) fn = withParam @(Decide p fn) p fn
+  {-# INLINE with #-}
+
+data Defaults = Defaults
+
+{- |
+Passing 'defaults' to a function fills all unspecified optional parameters
+with 'Nothing':
+
+@
+fn            :: "b" ':!' Bool -> "x" ':?' Char -> Int -> IO ()
+fn '!' 'defaults' :: "b" ':!' Bool ->                Int -> IO ()
+@
+
+-}
+defaults :: Param Defaults
+defaults = Param Defaults
 
 {- |
 
@@ -63,6 +133,7 @@ A proxy for a name, intended for use with @-XOverloadedLabels@:
 @
 
 -}
+
 data Name (name :: Symbol) = Name
 
 instance name ~ name' => IsLabel name' (Name name) where
@@ -73,24 +144,9 @@ instance name ~ name' => IsLabel name' (Name name) where
 #endif
   {-# INLINE fromLabel #-}
 
-{- | Supply a keyword argument to a function:
-
-@
-with #param_name value function
-@
--}
-with :: Apply name a fn fn' => Name name -> a -> fn -> fn'
-with name a fn = fn ! named name a
-{-# INLINE with #-}
-
--- | Annotate a value with a name.
-named :: Name name -> a -> Named a name
-named _ = Named
-{-# INLINE named #-}
-
 {- |
 
-'arg' unwraps a named parameter with the specified name. One way to use it is to
+'arg' unwraps a named parameter with the specified name. One way to use it is
 to match on arguments with @-XViewPatterns@:
 
 @
@@ -102,71 +158,88 @@ signature for @fn@ is required. In case a type signature for @fn@ is
 provided, the parameters must come in the same order:
 
 @
-fn :: Integer ``Named`` "t" -> Integer ``Named`` "f" -> ...
+fn :: "t" :! Integer -> "f" :! Integer -> ...
 fn (arg \#t -> t) (arg \#f -> f) = ... -- ok
 fn (arg \#f -> f) (arg \#t -> t) = ... -- does not typecheck
 @
 
 -}
-arg :: Name name -> Named a name -> a
-arg _ = unnamed
+arg :: Name name -> name :! a -> a
+arg _ (ArgF (Identity a)) = a
 {-# INLINE arg #-}
-
---------------------------------------------------------------------------------
---  Do not read further to avoid emotional trauma.
---------------------------------------------------------------------------------
-
-data Decision = Done | Skip Decision
-
-type family Decide (name :: Symbol) (fn :: Type) :: Decision where
-  Decide name (Named a name -> r) = Done
-  Decide name (x -> r) = Skip (Decide name r)
-  Decide name t =
-    TypeError (Text "Named parameter '" :<>: Text name :<>:
-               Text "' was supplied, but not expected")
-
-class
-  ( decision ~ Decide name fn
-  ) => Apply' decision name a fn fn' | name fn -> fn'
-  where
-    -- | Apply a function to a keyword argument.
-    apply :: fn -> Named a name -> fn'
-
-instance
-  ( fn ~ (Named a name -> r),
-    fn' ~ r,
-    Decide name fn ~ Done
-  ) => Apply' Done name a fn fn'
-  where
-    apply = id
-    {-# INLINE apply #-}
-
-instance
-  ( Apply' decision name a r r',
-    Decide name fn ~ Skip decision,
-    fn ~ (x -> r),
-    fn' ~ (x -> r')
-  ) => Apply' (Skip decision) name a fn fn'
-  where
-    apply fn a = \x -> apply (fn x) a
-    {-# INLINE apply #-}
 
 {- |
 
-Supply a parameter of type @a@ named @name@ to a function @fn@, resulting in
-@fn'@.
-
-For example:
-
-@
-Apply "x" Char
-  (Named Bool "b" -> Named Char "x" -> r)
-  (Named Bool "b" -> r)
-@
-
-In case the parameter cannot be supplied, this constraint will become a type
-error.
+'argF' is similar to 'arg': it unwraps a named parameter with the specified name.
+The difference is that the result of 'argF' is inside an arity wrapper,
+which is 'Identity' for normal parameters and 'Maybe' for optional parameters.
 
 -}
-type Apply (name :: Symbol) (a :: Type) (fn :: Type) (fn' :: Type) =
-  Apply' (Decide name fn) name a fn fn'
+argF :: Name name -> NamedF f a name -> f a
+argF _ (ArgF fa) = fa
+{-# INLINE argF #-}
+
+{- |
+
+A variation of 'arg' for optional arguments. Requires a default value in case
+the optional argument is missing:
+
+@
+fn (argDef \#answer 42 -> ans) = ...
+@
+
+-}
+argDef :: Name name -> a -> name :? a -> a
+argDef _ d (ArgF fa) = fromMaybe d fa
+
+--------------------------------------------------------------------------------
+-- The working horses of the library: Decide and WithParam'
+--------------------------------------------------------------------------------
+
+data DApply
+data DFill
+data DPass
+
+type family Decide (p :: Type) (fn :: Type) :: [Type] where
+  Decide (NamedF f' a' name) (NamedF f a name -> r) = '[DApply]
+  Decide Defaults (NamedF Maybe a name -> r) = DFill : Decide Defaults r
+  Decide p (x -> r) = DPass : Decide p r
+  Decide (NamedF f' a' name) t =
+    TypeError (Text "Named parameter '" :<>: Text name :<>:
+               Text "' was supplied, but not expected")
+  Decide Defaults t = '[]
+
+class WithParam' (ds :: [Type]) p fn fn' | ds p fn -> fn' where
+  withParam :: p -> fn -> fn'
+
+instance fn ~ fn' => WithParam' '[] p fn fn' where
+  withParam _ = id
+  {-# INLINE withParam #-}
+
+instance
+    ( WithParam' ds p r r',
+      fn ~ (p -> r),
+      fn' ~ r'
+    ) => WithParam' (DApply : ds) p fn fn'
+  where
+    withParam p fn = withParam @ds p (fn p)
+    {-# INLINE withParam #-}
+
+instance
+    ( WithParam' ds p r r',
+      fn ~ (x -> r),
+      fn' ~ (x -> r')
+    ) => WithParam' (DPass : ds) p fn fn'
+  where
+    withParam a fn = \x -> withParam @ds a (fn x)
+    {-# INLINE withParam #-}
+
+instance
+    ( WithParam' ds p r r',
+      fn ~ (NamedF f x name -> r),
+      fn' ~ r',
+      f ~ Maybe
+    ) => WithParam' (DFill : ds) p fn fn'
+  where
+    withParam p fn = withParam @ds p (fn (ArgF Nothing))
+    {-# INLINE withParam #-}

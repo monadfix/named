@@ -5,15 +5,16 @@
 
 module Main where
 
+import Data.Maybe (fromMaybe)
 import Data.Function ((&))
 import Named
 
 test1 ::
   String ->
-  Flag "a" ->
-  Bool `Named` "b" ->
+  "a" :! Bool ->
+  "b" :! Bool ->
   IO ()
-test1 "str" (Flag True) (Flag False) = return ()
+test1 "str" (arg #a -> True) (arg #b -> False) = return ()
 test1 _ _ _ = error "unexpected flags or str"
 
 test1_1 =
@@ -28,24 +29,24 @@ test1_2 =
 
 test1_3 =
   test1 "str"
-    & with #b False
-    & with #a True
+    & with (#b False)
+    & with (#a True)
 
 test1_4 =
-  with #a True $
-  with #b False $
+  with (#a True) $
+  with (#b False) $
     test1 "str"
 
 test1_5 =
-  with #a True $
+  with (#a True) $
   test1 "str"! #b False
 
 test1_6 =
   test1 "str"! #a True
-    & with #b False
+    & with (#b False)
 
-test2 :: Named Int "x" -> Int
-test2 x = unnamed x * 2
+test2 :: "x" :! Int -> Int
+test2 x = arg #x x * 2
 
 test2_1 :: Int
 test2_1 = test2 ! #x 5 + test2 ! #x 3
@@ -56,8 +57,24 @@ test3 (arg #a -> a) (arg #b -> b) = a + b
 --     Couldn't match type ‘"a"’ with ‘"b"’
 --     arising from the overloaded label ‘#b’
 --
--- test3' :: _ => _ `Named` "a" -> _ `Named` "b" -> _
+-- test3' :: _ => "a" :! _ -> _ :! "b" -> _
 -- test3' (arg #b -> a) (arg #a -> b) = a + b
+
+-- test4 ::
+--   "b" :! Bool ->
+--   NamedF _ Char "x" ->
+--   "y" :? Char ->
+--   Char
+test4
+  (arg #b -> b)
+  (argDef #x 'x' -> x)
+  (ArgF y)
+  = if b then x else (fromMaybe 'y' y)
+
+test4_1 = test4 ! #b True ! defaults
+test4_2 = test4 ! #b False ! defaults
+test4_3 = test4 ! #x 'z' ! #b True ! defaults
+test4_4 = test4 ! defaults ! #b True
 
 main :: IO ()
 main = do
@@ -68,6 +85,10 @@ main = do
   test1_5
   test1_6
   test2_1 `mustBe` 16
+  test4_1 `mustBe` 'x'
+  test4_2 `mustBe` 'y'
+  test4_3 `mustBe` 'z'
+  test4_4 `mustBe` 'x'
 
 mustBe :: (Eq a, Show a) => a -> a -> IO ()
 mustBe a b

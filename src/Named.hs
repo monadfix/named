@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PatternSynonyms, ExplicitNamespaces #-}
 
 {- |
 
@@ -39,20 +39,29 @@ arguments in arbitrary order.
 With keyword arguments, none of that is a problem:
 
 @
-Text.replace '!' #haystack path
-             '!' #needle "$HOME"
-             '!' #replacement "\/home\/username\/"
+Text.replace '!' \#haystack path
+             '!' \#needle "$HOME"
+             '!' \#replacement "\/home\/username\/"
 @
 
-Functions must declare their parameter names in the type signature:
+Functions can declare their parameter names in pattern bindings:
+
+@
+replace ('arg' \#needle -> n) ('arg' \#replacement -> r) ('arg' \#haystack -> h) =
+  ...
+@
+
+Types are inferred, but it is possible to specify them. When the parameter
+names are specified in the type signature, they can be omitted from the
+pattern bindings:
 
 @
 replace ::
-  Text \``Named`\` "needle" ->
-  Text \``Named`\` "replacement" ->
-  Text \``Named`\` "haystack" ->
+  "needle"      ':!' Text ->
+  "replacement" ':!' Text ->
+  "haystack"    ':!' Text ->
   Text
-replace (Named needle) (Named replacement) (Named haystack) =
+replace ('Arg' n) ('Arg' r) ('Arg' h) =
   ...
 @
 
@@ -60,23 +69,23 @@ Keyword arguments have seamless interoperability with positional arguments when
 the function takes them last. Consider this function:
 
 @
-foo :: A -> B -> C \``Named`\` "x" -> IO ()
+foo :: A -> B -> "x" :! C -> IO ()
 @
 
 There are several ways to invoke it:
 
 @
-(foo a b) '!' #x c     -- parentheses for clarity
-(foo a '!' #x c) b     -- parentheses required
-(foo '!' #x c) a b     -- parentheses required
+(foo a b) '!' \#x c     -- parentheses for clarity
+(foo a '!' \#x c) b     -- parentheses required
+(foo '!' \#x c) a b     -- parentheses required
 @
 
 We can also supply keyword arguments using the 'with' combinator instead of
 the '!' operator:
 
 @
-('with' #x c foo) a b  -- parentheses for clarity
-'with' #x c (foo a b)  -- has the same effect
+('with' (\#x c) foo) a b  -- parentheses for clarity
+'with' (\#x c) (foo a b)  -- has the same effect
 @
 
 Both '!' and 'with' work in a similar manner: they traverse the spine of
@@ -85,25 +94,31 @@ the function and supply the first keyword argument with a matching name.
 For example:
 
 @
-bar           :: A \``Named`\` "x" -> B \``Named`\` "y" -> IO ()
-bar '!' #y b    :: A \``Named`\` "x"                  -> IO ()
-'with' #y b bar :: A \``Named`\` "x"                  -> IO ()
+bar             :: "x" :! A -> "y" :! B -> IO ()
+bar '!' \#y b      :: "x" :! A             -> IO ()
+'with' (\#y b) bar :: "x" :! A             -> IO ()
 @
 
 -}
 module Named
   (
-    -- * Core interface
-    Named(..),
+    -- * Calling functions
     (!),
+    WithParam(..),
+    defaults,
+
+    -- * Types
+    type (:!),
+    type (:?),
+    NamedF,
+
+    -- * Patterns
     Name(..),
-    with,
     arg,
-
-    -- * Specialized synonyms
-    Flag,
-    pattern Flag
-
+    argDef,
+    argF,
+    pattern Arg,
+    pattern ArgF,
   ) where
 
 import Named.Internal
