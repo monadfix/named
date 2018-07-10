@@ -181,12 +181,15 @@ argF _ (ArgF fa) = fa
 
 {- |
 
-A variation of 'arg' for optional arguments. Requires a default value in case
-the optional argument is missing:
+A variation of 'arg' for optional arguments. Requires a default value to handle
+the case when the optional argument was omitted:
 
 @
 fn (argDef \#answer 42 -> ans) = ...
 @
+
+In case you want to get a value wrapped in 'Maybe' instead, use 'argF' or
+'ArgF'.
 
 -}
 argDef :: Name name -> a -> name :? a -> a
