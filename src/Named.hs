@@ -99,6 +99,58 @@ bar '!' \#y b      :: "x" :! A             -> IO ()
 'with' (\#y b) bar :: "x" :! A             -> IO ()
 @
 
+There is also support for optional parameters. A function can specify default
+values for some of its arguments:
+
+@
+log ::
+  "message"  ':!' Text ->
+  "severity" ':?' Severity ->
+  "handle"   ':?' Handle ->
+  IO ()
+log ('arg'    #message          -> msg)
+    ('argDef' #severity Error   -> sev)
+    ('argDef' #handle   stderr  -> hndl)
+  = ...
+@
+
+Optional parameters are denoted with (':?') instead of (':!'). Instead of 'arg'
+to match on them, we must use either 'argDef' to provide a default value or
+'argF' to get a value wrapped in 'Maybe' ('Just' when the parameter was
+specified, 'Nothing' when omitted).
+
+At call site, optional parameters are passed using the same ('!') operator:
+
+@
+log '!' #message "All your base are belong to us"
+    '!' #severity Info
+    '!' #handle stdout
+@
+
+To use the default values for all unspecified optional parameters, we can pass
+'defaults' to the function:
+
+@
+log '!' #message "Could not match type 'Int' with type 'Bool'"
+    '!' 'defaults'
+@
+
+@
+log '!' #message "The password must contain a letter, \\
+               \\a digit, and a plot twist"
+    '!' #severity Warning
+    '!' 'defaults'
+@
+
+We can also pass 'defaults' using 'with', which has the same effect as the ('!')
+operator:
+
+@
+'with' 'defaults' $
+  log '!' #message "Connection interrupted"
+      '!' #handle logfile
+@
+
 -}
 module Named
   (

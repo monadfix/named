@@ -71,8 +71,14 @@ instance (p ~ NamedF f a name, InjValue f) => IsLabel name (a -> Param p) where
 
 @
 function '!' \#param_name value
+@
+
+@
 function '!' \#x 7 '!' #y 42 '!' 'defaults'
 @
+
+This is an infix version of 'with'.
+
 -}
 (!) :: forall p fn fn'. WithParam p fn fn' => fn -> Param p -> fn'
 fn ! p = with p fn
@@ -83,12 +89,14 @@ infixl 9 !
 {- |
 Supply a parameter @p@ to a function @fn@, resulting in @fn'@.
 
-For example:
+For example, when we pass a single named parameter, we get a function without
+this parameter:
 
 @
-WithParam ("x" :! Char)
-  ("b" :! Bool -> "x" :! Char -> r)
-  ("b" :! Bool -> r)
+WithParam
+                 ("x" :! Char)       -- p
+  ("b" :! Bool -> "x" :! Char -> r)  -- fn
+  ("b" :! Bool                -> r)  -- fn'
 @
 
 In case the parameter cannot be supplied, this constraint will become a type
@@ -100,8 +108,14 @@ class WithParam p fn fn' | p fn -> fn' where
 
   @
   'with' (\#param_name value) function
+  @
+
+  @
   'with' 'defaults' function
   @
+
+  This is a prefix version of the ('!') operator.
+
   -}
   with :: Param p -> fn -> fn'
 
