@@ -20,8 +20,8 @@ Example usage:
 ```haskell
 import Named
 
-createSymLink :: FilePath `Named` "from" -> FilePath `Named` "to" -> IO ()
-createSymLink (Named from) (Named to) = ...
+createSymLink :: "from" :! FilePath -> "to" :! FilePath -> IO ()
+createSymLink (Arg from) (Arg to) = ...
 
 main = createSymLink ! #from "/path/to/source"
                      ! #to "/target/path"
