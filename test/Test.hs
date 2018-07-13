@@ -76,6 +76,16 @@ test4_2 = test4 ! #b False ! defaults
 test4_3 = test4 ! #x 'z' ! #b True ! defaults
 test4_4 = test4 ! defaults ! #b True
 
+test5_1 :: ("bar" :! Int -> ()) -> ()
+test5_1 f = f ! #bar 3
+
+test5_2 :: ("bar" :! Int -> ()) -> "bar" :! Int -> ()
+test5_2 f x = f x
+
+test6 :: Maybe ("x" :! Int -> Int) -> Int
+test6 Nothing = 0
+test6 (Just f) = f ! #x 42
+
 main :: IO ()
 main = do
   test1_1
