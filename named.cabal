@@ -31,7 +31,7 @@ description:
 license:             BSD3
 license-file:        LICENSE
 author:              Vladislav Zavialov
-maintainer:          Vladislav Zavialov <vlad.z.4096@gmail.com>
+maintainer:          Monadfix <hi@monadfix.io>
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
@@ -40,7 +40,7 @@ cabal-version:       >=1.10
 
 source-repository head
   type: git
-  location: git@github.com:int-index/named.git
+  location: git@github.com:monadfix/named.git
 
 library
   exposed-modules:     Named, Named.Internal
