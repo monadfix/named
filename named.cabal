@@ -35,7 +35,7 @@ maintainer:          Monadfix <hi@monadfix.io>
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
-tested-with:         GHC ==8.0.2, GHC ==8.2.2, GHC ==8.4.1
+tested-with:         GHC ==8.0.2, GHC ==8.2.2, GHC ==8.4.4, GHC ==8.6.2
 cabal-version:       >=1.10
 
 source-repository head
@@ -44,7 +44,7 @@ source-repository head
 
 library
   exposed-modules:     Named, Named.Internal
-  build-depends:       base >=4.9 && <4.12
+  build-depends:       base >=4.9 && <4.13
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:         -Wall
@@ -53,7 +53,7 @@ library
 test-suite regression
   type:                exitcode-stdio-1.0
   main-is:             Test.hs
-  build-depends:       base >=4.9 && <4.12,
+  build-depends:       base >=4.9 && <4.13,
                        named
   hs-source-dirs:      test
   default-language:    Haskell2010
