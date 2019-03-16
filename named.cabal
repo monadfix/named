@@ -35,7 +35,7 @@ maintainer:          Monadfix <hi@monadfix.io>
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
-tested-with:         GHC ==8.0.2, GHC ==8.2.2, GHC ==8.4.4, GHC ==8.6.2
+tested-with:         GHC ==8.0.2, GHC ==8.2.2, GHC ==8.4.4, GHC ==8.6.4
 cabal-version:       >=1.10
 
 source-repository head
