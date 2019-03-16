@@ -67,6 +67,36 @@ instance (p ~ NamedF f a name, InjValue f) => IsLabel name (a -> Param p) where
 #endif
   {-# INLINE fromLabel #-}
 
+{- | Explicitly build a function parameter:
+
+@
+fn '!' 'param' \#param_name value
+@
+
+This is equivalent to the implicit notation:
+
+@
+fn '!' \#param_name value
+@
+
+-}
+param :: Name name -> a -> Param (name :! a)
+param _ a = Param (Arg a)
+
+{- | Explicitly build a function parameter inside an arity wrapper:
+
+@
+fn '!' 'paramF' \#param_name ('Identity' value)
+fn '!' 'paramF' \#param_name ('Just' value)
+fn '!' 'paramF' \#param_name 'Nothing'
+@
+
+This has no equivalent implicit notation.
+
+-}
+paramF :: Name name -> f a -> Param (NamedF f a name)
+paramF _ fa = Param (ArgF fa)
+
 {- | Supply a parameter to a function:
 
 @

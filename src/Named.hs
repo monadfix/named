@@ -157,6 +157,8 @@ module Named
     -- * Call site
     (!),
     WithParam(..),
+    param,
+    paramF,
     defaults,
 
     -- * Definition site

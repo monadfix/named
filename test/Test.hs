@@ -60,11 +60,11 @@ test3 (arg #a -> a) (arg #b -> b) = a + b
 -- test3' :: _ => "a" :! _ -> _ :! "b" -> _
 -- test3' (arg #b -> a) (arg #a -> b) = a + b
 
--- test4 ::
---   "b" :! Bool ->
---   NamedF _ Char "x" ->
---   "y" :? Char ->
---   Char
+test4 ::
+  "b" :! Bool ->
+  NamedF _ Char "x" ->
+  "y" :? Char ->
+  Char
 test4
   (arg #b -> b)
   (argDef #x 'x' -> x)
@@ -75,6 +75,8 @@ test4_1 = test4 ! #b True ! defaults
 test4_2 = test4 ! #b False ! defaults
 test4_3 = test4 ! #x 'z' ! #b True ! defaults
 test4_4 = test4 ! defaults ! #b True
+test4_5 = test4 ! paramF #x (Just 'q') ! #b True ! defaults
+test4_6 = test4 ! paramF #x Nothing ! #b True ! #y '-'
 
 test5_1 :: ("bar" :! Int -> ()) -> ()
 test5_1 f = f ! #bar 3
@@ -99,6 +101,8 @@ main = do
   test4_2 `mustBe` 'y'
   test4_3 `mustBe` 'z'
   test4_4 `mustBe` 'x'
+  test4_5 `mustBe` 'q'
+  test4_6 `mustBe` 'x'
 
 mustBe :: (Eq a, Show a) => a -> a -> IO ()
 mustBe a b
