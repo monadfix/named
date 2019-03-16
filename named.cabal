@@ -53,6 +53,7 @@ library
 test-suite regression
   type:                exitcode-stdio-1.0
   main-is:             Test.hs
+  other-modules:       TestImport
   build-depends:       base >=4.9 && <4.13,
                        named
   hs-source-dirs:      test
