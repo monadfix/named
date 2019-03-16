@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternSynonyms, ExplicitNamespaces #-}
+{-# LANGUAGE ExplicitNamespaces #-}
 
 {- |
 
@@ -154,23 +154,19 @@ operator:
 -}
 module Named
   (
-    -- * Calling functions
+    -- * Call site
     (!),
     WithParam(..),
     defaults,
 
-    -- * Types
+    -- * Definition site
     type (:!),
     type (:?),
-    NamedF,
-
-    -- * Patterns
+    NamedF(Arg, ArgF),
     Name(..),
     arg,
     argDef,
     argF,
-    pattern Arg,
-    pattern ArgF,
   ) where
 
 import Named.Internal
