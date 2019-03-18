@@ -1,3 +1,8 @@
+## 0.3.0.0
+
+* Added 'param', 'paramF'.
+* Export 'NamedF(Arg, ArgF)' as a bundle.
+
 ## 0.2.0.0
 
 * Removed 'Flag', 'named', 'Apply', 'apply'.
