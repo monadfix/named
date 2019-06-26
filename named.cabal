@@ -31,7 +31,9 @@ description:
 license:             BSD3
 license-file:        LICENSE
 author:              Vladislav Zavialov
-maintainer:          Monadfix <hi@monadfix.io>
+maintainer:          Monadfix <hi@monadfix.com>
+homepage:            https://github.com/monadfix/named
+bug-reports:         https://github.com/monadfix/named/issues
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
