@@ -1,3 +1,7 @@
+## 0.3.0.1
+
+* Bumped upper bounds for GHC 8.8.
+
 ## 0.3.0.0
 
 * Added 'param', 'paramF'.
