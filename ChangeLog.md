@@ -1,3 +1,5 @@
+* Bumped upper bounds for GHC 9.2 and older.
+
 ## 0.3.0.1
 
 * Bumped upper bounds for GHC 8.8.
