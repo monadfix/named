@@ -56,7 +56,7 @@ test-suite regression
   type:                exitcode-stdio-1.0
   main-is:             Test.hs
   other-modules:       TestImport
-  build-depends:       base >=4.9 && <4.16,
+  build-depends:       base >=4.9 && <4.17,
                        named
   hs-source-dirs:      test
   default-language:    Haskell2010
