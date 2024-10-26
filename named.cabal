@@ -1,5 +1,6 @@
+cabal-version:       2.4
 name:                named
-version:             0.3.0.1
+version:             0.3.0.2
 synopsis:            Named parameters (keyword arguments) for Haskell
 description:
     `named` is a lightweight library for named function parameters (keyword
@@ -28,7 +29,7 @@ description:
     >                      ! #to "/target/path"
 
 
-license:             BSD3
+license:             BSD-3-Clause
 license-file:        LICENSE
 author:              Vladislav Zavialov
 maintainer:          Monadfix <hi@monadfix.com>
@@ -37,8 +38,7 @@ bug-reports:         https://github.com/monadfix/named/issues
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
-tested-with:         GHC ==8.0.2, GHC ==8.2.2, GHC ==8.4.4, GHC ==8.6.5, GHC ==8.8.5, GHC ==9.2.5, GHC ==9.4.4
-cabal-version:       >=1.10
+tested-with:         GHC ==9.4.8, GHC ==9.6.6, GHC ==9.10.1
 
 source-repository head
   type: git
@@ -46,9 +46,9 @@ source-repository head
 
 library
   exposed-modules:     Named, Named.Internal
-  build-depends:       base >=4.9 && <4.18
+  build-depends:       base >=4.16 && <4.21
   hs-source-dirs:      src
-  default-language:    Haskell2010
+  default-language:    GHC2021
   ghc-options:         -Wall
                        -fno-warn-unticked-promoted-constructors
 
@@ -56,9 +56,9 @@ test-suite regression
   type:                exitcode-stdio-1.0
   main-is:             Test.hs
   other-modules:       TestImport
-  build-depends:       base >=4.9 && <4.18,
+  build-depends:       base >=4.16 && <4.21,
                        named
   hs-source-dirs:      test
-  default-language:    Haskell2010
+  default-language:    GHC2021
   ghc-options:         -Wall
                        -fno-warn-missing-signatures
