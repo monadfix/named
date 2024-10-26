@@ -1,6 +1,5 @@
 # `named` – keyword arguments for Haskell
 
-[![Build Status](https://github.com/monadfix/named/workflows/CI/badge.svg)](https://github.com/monadfix/named/actions)
 [![Hackage](https://img.shields.io/hackage/v/named.svg)](https://hackage.haskell.org/package/named)
 
 `named` is a lightweight library for named function parameters (keyword

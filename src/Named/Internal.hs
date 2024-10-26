@@ -1,8 +1,6 @@
-{-# LANGUAGE KindSignatures, DataKinds, FlexibleInstances, FlexibleContexts,
-             FunctionalDependencies, TypeFamilies, TypeOperators,
-             PatternSynonyms, UndecidableInstances, ConstraintKinds,
-             TypeApplications, ScopedTypeVariables, CPP,
-             AllowAmbiguousTypes #-}
+{-# LANGUAGE AllowAmbiguousTypes, DataKinds, ExplicitNamespaces,
+             FunctionalDependencies, PatternSynonyms, TypeFamilies,
+             UndecidableInstances #-}
 
 module Named.Internal where
 
@@ -12,6 +10,7 @@ import Data.Functor.Identity (Identity(..))
 import Data.Kind (Type)
 import GHC.TypeLits (Symbol, TypeError, ErrorMessage(..))
 import GHC.OverloadedLabels (IsLabel(..))
+import Data.Type.Equality (type (~))
 
 {- |
 
@@ -29,10 +28,7 @@ newtype NamedF f (a :: Type) (name :: Symbol) =
 -- | Match on an argument without specifying its name. See also: 'arg'.
 pattern Arg :: a -> name :! a
 pattern Arg a = ArgF (Identity a)
-
-#if MIN_VERSION_base(4,10,0)
 {-# COMPLETE Arg #-}
-#endif
 
 -- | Infix notation for the type of a named parameter.
 type name :! a = NamedF Identity a name
@@ -50,21 +46,13 @@ instance InjValue Maybe where
   injValue = Just
 
 instance (name ~ name', a ~ a', InjValue f) => IsLabel name (a -> NamedF f a' name') where
-#if MIN_VERSION_base(4,10,0)
   fromLabel a = ArgF (injValue a)
-#else
-  fromLabel _ a = ArgF (injValue a)
-#endif
   {-# INLINE fromLabel #-}
 
 newtype Param p = Param p
 
 instance (p ~ NamedF f a name, InjValue f) => IsLabel name (a -> Param p) where
-#if MIN_VERSION_base(4,10,0)
   fromLabel a = Param (fromLabel @name a)
-#else
-  fromLabel pName a = Param (fromLabel pName a)
-#endif
   {-# INLINE fromLabel #-}
 
 {- | Explicitly build a function parameter:
@@ -181,11 +169,7 @@ A proxy for a name, intended for use with @-XOverloadedLabels@:
 data Name (name :: Symbol) = Name
 
 instance name ~ name' => IsLabel name' (Name name) where
-#if MIN_VERSION_base(4,10,0)
   fromLabel = Name
-#else
-  fromLabel _ = Name
-#endif
   {-# INLINE fromLabel #-}
 
 {- |

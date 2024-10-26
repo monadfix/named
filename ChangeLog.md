@@ -1,4 +1,6 @@
-* Bumped upper bounds for GHC 9.4 and older.
+## 0.3.0.2
+
+* Support GHCs 9.4 to 9.10, fix warnings.
 
 ## 0.3.0.1
 
