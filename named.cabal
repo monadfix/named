@@ -38,7 +38,7 @@ bug-reports:         https://github.com/monadfix/named/issues
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
-tested-with:         GHC ==9.4.8, GHC ==9.6.6, GHC ==9.10.1
+tested-with:         GHC ==9.4.8, GHC ==9.6.6, GHC ==9.10.1, GHC ==9.12.1
 
 source-repository head
   type: git
@@ -46,7 +46,7 @@ source-repository head
 
 library
   exposed-modules:     Named, Named.Internal
-  build-depends:       base >=4.16 && <4.21
+  build-depends:       base >=4.16 && <4.22
   hs-source-dirs:      src
   default-language:    GHC2021
   ghc-options:         -Wall
@@ -56,7 +56,7 @@ test-suite regression
   type:                exitcode-stdio-1.0
   main-is:             Test.hs
   other-modules:       TestImport
-  build-depends:       base >=4.16 && <4.21,
+  build-depends:       base >=4.16 && <4.22,
                        named
   hs-source-dirs:      test
   default-language:    GHC2021
