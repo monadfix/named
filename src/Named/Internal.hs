@@ -51,7 +51,7 @@ instance (name ~ name', a ~ a', InjValue f) => IsLabel name (a -> NamedF f a' na
 
 newtype Param p = Param p
 
-instance (p ~ NamedF f a name, InjValue f) => IsLabel name (a -> Param p) where
+instance {-# OVERLAPPING #-} (p ~ NamedF f a name, InjValue f) => IsLabel name (a -> Param p) where
   fromLabel a = Param (fromLabel @name a)
   {-# INLINE fromLabel #-}
 
