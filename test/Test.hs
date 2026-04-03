@@ -7,7 +7,7 @@ module Main where
 
 import Data.Maybe (fromMaybe)
 import Data.Function ((&))
-import Data.Generics.Labels ()
+import Data.Generics.Labels () -- to ensure our instances won't conflict with IsLabel from generic-lens
 import Named
 
 test1 ::
