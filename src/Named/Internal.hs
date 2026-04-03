@@ -51,6 +51,8 @@ instance (name ~ name', a ~ a', InjValue f) => IsLabel name (a -> NamedF f a' na
 
 newtype Param p = Param p
 
+-- It needs to be OVERLAPPING to avoid conflicts with 'generic-lens'.
+-- See the discussion for more context: https://github.com/monadfix/named/issues/8
 instance {-# OVERLAPPING #-} (p ~ NamedF f a name, InjValue f) => IsLabel name (a -> Param p) where
   fromLabel a = Param (fromLabel @name a)
   {-# INLINE fromLabel #-}
