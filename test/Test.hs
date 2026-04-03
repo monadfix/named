@@ -7,6 +7,7 @@ module Main where
 
 import Data.Maybe (fromMaybe)
 import Data.Function ((&))
+import Data.Generics.Labels ()
 import Named
 
 test1 ::
