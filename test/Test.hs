@@ -1,22 +1,30 @@
 {-# LANGUAGE OverloadedLabels, DataKinds, TypeOperators, ViewPatterns,
-             PartialTypeSignatures #-}
+             PartialTypeSignatures, TemplateHaskell #-}
 
 {-# OPTIONS -fno-warn-partial-type-signatures #-}
 
 module Main where
 
 import Data.Maybe (fromMaybe)
+import Data.Functor (void)
 import Data.Function ((&))
 import Data.Generics.Labels () -- to ensure our instances won't conflict with IsLabel from generic-lens
 import Named
+import Test.Inspection
 
 test1 ::
   String ->
   "a" :! Bool ->
   "b" :! Bool ->
-  IO ()
-test1 "str" (arg #a -> True) (arg #b -> False) = return ()
-test1 _ _ _ = error "unexpected flags or str"
+  IO Bool
+test1 "str" (arg #a -> True) (arg #b -> False) = return True
+test1 _ _ _ = return False
+
+test1_raw :: String -> Bool -> Bool -> IO Bool
+test1_raw "str" True False = return True
+test1_raw _ _ _ = return False
+
+inspect $ 'test1 ==- 'test1_raw
 
 test1_1 =
   test1 "str"
@@ -49,10 +57,19 @@ test1_6 =
 test2 :: "x" :! Int -> Int
 test2 x = arg #x x * 2
 
+test2_raw :: Int -> Int
+test2_raw x = x * 2
+
+inspect $ 'test2 ==- 'test2_raw
+
 test2_1 :: Int
 test2_1 = test2 ! #x 5 + test2 ! #x 3
 
 test3 (arg #a -> a) (arg #b -> b) = a + b
+
+test3_raw a b = a + b
+
+inspect $ 'test3 ==- 'test3_raw
 
 -- must not typecheck:
 --     Couldn't match type ‘"a"’ with ‘"b"’
@@ -72,6 +89,11 @@ test4
   (ArgF y)
   = if b then x else (fromMaybe 'y' y)
 
+test4_raw :: Bool -> Maybe Char -> Maybe Char -> Char
+test4_raw b (fromMaybe 'x' -> x) y = if b then x else fromMaybe 'y' y
+
+inspect $ 'test4 ==- 'test4_raw
+
 test4_1 = test4 ! #b True ! defaults
 test4_2 = test4 ! #b False ! defaults
 test4_3 = test4 ! #x 'z' ! #b True ! defaults
@@ -82,21 +104,37 @@ test4_6 = test4 ! paramF #x Nothing ! #b True ! #y '-'
 test5_1 :: ("bar" :! Int -> ()) -> ()
 test5_1 f = f ! #bar 3
 
+test5_1_raw :: (Int -> ()) -> ()
+test5_1_raw f = f 3
+
+inspect $ 'test5_1 ==- 'test5_1_raw
+
 test5_2 :: ("bar" :! Int -> ()) -> "bar" :! Int -> ()
 test5_2 f x = f x
+
+test5_2_raw :: (Int -> ()) -> Int -> ()
+test5_2_raw f x = f x
+
+inspect $ 'test5_2 ==- 'test5_2_raw
 
 test6 :: Maybe ("x" :! Int -> Int) -> Int
 test6 Nothing = 0
 test6 (Just f) = f ! #x 42
 
+test6_raw :: Maybe (Int -> Int) -> Int
+test6_raw Nothing = 0
+test6_raw (Just f) = f 42
+
+inspect $ 'test6 ==- 'test6_raw
+
 main :: IO ()
 main = do
-  test1_1
-  test1_2
-  test1_3
-  test1_4
-  test1_5
-  test1_6
+  void test1_1
+  void test1_2
+  void test1_3
+  void test1_4
+  void test1_5
+  void test1_6
   test2_1 `mustBe` 16
   test4_1 `mustBe` 'x'
   test4_2 `mustBe` 'y'
