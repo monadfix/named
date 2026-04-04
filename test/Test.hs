@@ -127,6 +127,28 @@ test6_raw (Just f) = f 42
 
 inspect $ 'test6 ==- 'test6_raw
 
+newtype M m a = M { runM :: m a }
+  deriving (Functor, Applicative, Monad)
+
+-- must typecheck:
+
+test7_1 :: "x" :? Int -> M m Int
+test7_1 = undefined
+
+test7_2 :: M m Int
+test7_2 = test7_1 ! defaults
+
+test7_3 :: m Int
+test7_3 = runM (test7_1 ! defaults)
+
+-- doesn't typecheck (yet):
+--
+-- test7_4 :: "x" :? Int -> m Int
+-- test7_4 = undefined
+
+-- test7_5 :: m Int
+-- test7_5 = test7_1 ! defaults
+
 main :: IO ()
 main = do
   void test1_1
