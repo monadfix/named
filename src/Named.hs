@@ -153,6 +153,35 @@ operator:
       '!' #handle logfile
 @
 
+= An issue with with polymorphic return types
+
+A limitation of 'defaults' is that it is not possible to pass it to a function with a polymorphic return type. In particular: to mtl-style functions. The following code produces a compilation error:
+
+@
+foo :: "x" ':?' Int -> m Int
+
+bar :: m Int
+bar = foo '!' 'defaults'
+@
+
+A workaround is to return a newtype wrapper around @m@:
+
+@
+newtype M m a = M { runM :: m a }
+  deriving (Functor, Applicative, Monad)
+
+foo :: "x" ':?' Int -> M m Int
+
+bar :: M m Int
+bar = foo '!' 'defaults'
+
+bar' :: m Int
+bar' = runM (foo '!' 'defaults')
+@
+
+Note: the type signature of 'bar' is required.
+
+See [issue #15](https://github.com/monadfix/named/issues/15) "Problem with type inference caused by @! defaults@" for details.
 -}
 module Named
   (
