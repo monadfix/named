@@ -58,7 +58,8 @@ test-suite regression
   other-modules:       TestImport
   build-depends:       base >=4.16 && <4.22,
                        named,
-                       generic-lens
+                       generic-lens,
+                       inspection-testing
   hs-source-dirs:      test
   default-language:    GHC2021
   ghc-options:         -Wall
