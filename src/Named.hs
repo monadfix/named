@@ -9,6 +9,8 @@ over positional arguments:
 * readability: their names serve as documentation at call site
 * safety: it is impossible to accidentally mix them up
 
+The required extensions are @OverloadedLabels@, @DataKinds@, and @TypeOperators@.
+
 Consider a function to replace a substring with another string:
 
 @
@@ -44,7 +46,7 @@ Text.replace '!' \#haystack path
              '!' \#replacement "\/home\/username\/"
 @
 
-Functions can declare their parameter names in pattern bindings:
+Functions can declare their parameter names in pattern bindings (via the extension @ViewPatterns@):
 
 @
 replace ('arg' \#needle -> n) ('arg' \#replacement -> r) ('arg' \#haystack -> h) =
