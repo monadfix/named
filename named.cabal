@@ -38,7 +38,7 @@ bug-reports:         https://github.com/monadfix/named/issues
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
-tested-with:         GHC ==9.4.8, GHC ==9.6.6, GHC ==9.10.1, GHC ==9.12.1
+tested-with:         GHC ==9.6.6, GHC ==9.10.1, GHC ==9.12.1
 
 source-repository head
   type: git
