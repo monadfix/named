@@ -149,6 +149,12 @@ test7_3 = runM (test7_1 ! defaults)
 -- test7_5 :: m Int
 -- test7_5 = test7_1 ! defaults
 
+test8 :: "ice-cream" :! a -> IO a  -- hyphenated parameter name
+test8 (arg #"ice-cream" -> x) = return x
+
+test8_1 :: IO String
+test8_1 = test8 ! #"ice-cream" "vanilla"
+
 main :: IO ()
 main = do
   void test1_1
@@ -164,6 +170,7 @@ main = do
   test4_4 `mustBe` 'x'
   test4_5 `mustBe` 'q'
   test4_6 `mustBe` 'x'
+  void test8_1
 
 mustBe :: (Eq a, Show a) => a -> a -> IO ()
 mustBe a b
