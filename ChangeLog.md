@@ -1,3 +1,8 @@
+## 0.4.0.0
+
+* Support GHCs 9.6 to 9.14.
+* Fix conflict with 'generic-lens' by using '{-# OVERLAPPING #-}'.
+
 ## 0.3.0.2
 
 * Support GHCs 9.4 to 9.10, fix warnings.
