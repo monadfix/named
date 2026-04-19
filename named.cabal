@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                named
-version:             0.3.0.2
+version:             0.4.0.0
 synopsis:            Named parameters (keyword arguments) for Haskell
 description:
     `named` is a lightweight library for named function parameters (keyword

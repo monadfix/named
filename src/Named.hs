@@ -153,7 +153,7 @@ operator:
       '!' #handle logfile
 @
 
-= An issue with with polymorphic return types
+= An issue with polymorphic return types
 
 A limitation of 'defaults' is that it is not possible to pass it to a function with a polymorphic return type. In particular: to mtl-style functions. The following code produces a compilation error:
 
